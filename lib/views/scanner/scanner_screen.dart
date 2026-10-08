@@ -71,7 +71,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
           ],
         ),
         behavior: .floating,
-        duration: const Duration(seconds: 2),
+        duration: 2.seconds,
       ),
     );
   }
@@ -104,7 +104,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                     color: isScanning
                         ? scheme.primaryContainer
                         : scheme.surfaceContainer,
-                    borderRadius: .circular(12),
+                    borderRadius: 12.radius,
                   ),
                   child: Row(
                     mainAxisSize: .min,
@@ -200,7 +200,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
                   padding: 14.hPadding + 10.vPadding,
                   decoration: BoxDecoration(
                     color: scheme.errorContainer,
-                    borderRadius: .circular(12),
+                    borderRadius: 12.radius,
                   ),
                   child: Row(
                     children: [
