@@ -1,7 +1,7 @@
 import 'package:flutter/widget_previews.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../constants/app_colors.dart';
+import 'package:blue_pulse/core/constants/app_colors.dart';
 
 final class const BluePulsePreview({
   super.name,
