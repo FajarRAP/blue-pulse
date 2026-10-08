@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:blue_pulse/core/utils/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
@@ -235,8 +236,7 @@ class ScannerViewModel({
 
       // Debounced SQLite upsert: write at most once per second per device
       final lastWrite = _lastDbWriteTimes[id];
-      if (lastWrite == null ||
-          now.difference(lastWrite) >= const Duration(seconds: 1)) {
+      if (lastWrite == null || now.difference(lastWrite) >= 1.seconds) {
         _lastDbWriteTimes[id] = now;
         unawaited(_historyRepository.upsertDevice(model));
       }
