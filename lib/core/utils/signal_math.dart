@@ -40,9 +40,9 @@ enum ProximityZone {
   /// Estimated distance range description in meters.
   String get distanceRangeDescription => switch (this) {
     .veryStrong => '< 1 meter',
-    .strong => '1 \u002d 3 meter',
-    .fair => '3 \u002d 10 meter',
-    .weak => '10 \u002d 20 meter',
+    .strong => '1 – 3 meter',
+    .fair => '3 – 10 meter',
+    .weak => '10 – 20 meter',
     .veryWeak => '> 20 meter',
     .lost => 'Terputus / Di luar jangkauan',
   };
