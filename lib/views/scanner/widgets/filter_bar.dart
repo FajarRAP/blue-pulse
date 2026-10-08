@@ -52,15 +52,15 @@ class const FilterBar({
               filled: true,
               fillColor: scheme.surfaceContainerHigh,
               border: OutlineInputBorder(
-                borderRadius: .circular(14),
+                borderRadius: 14.radius,
                 borderSide: .none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: .circular(14),
+                borderRadius: 14.radius,
                 borderSide: .none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: .circular(14),
+                borderRadius: 14.radius,
                 borderSide: BorderSide(color: scheme.primary, width: 1.5),
               ),
             ),
@@ -89,7 +89,7 @@ class const FilterBar({
                           color: scheme.onPrimaryContainer,
                         )
                       : null,
-                  shape: RoundedRectangleBorder(borderRadius: .circular(20)),
+                  shape: RoundedRectangleBorder(borderRadius: 20.radius),
                 ),
               ),
             ],

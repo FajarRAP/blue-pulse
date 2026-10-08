@@ -25,7 +25,7 @@ class const DeviceCard({
       elevation: 0,
       margin: .zero,
       shape: RoundedRectangleBorder(
-        borderRadius: .circular(16),
+        borderRadius: 16.radius,
         side: BorderSide(
           color: scheme.outlineVariant.withValues(alpha: 0.6),
           width: 1,
@@ -34,7 +34,7 @@ class const DeviceCard({
       clipBehavior: .antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: .circular(16),
+        borderRadius: 16.radius,
         child: Padding(
           padding: 16.allPadding,
           child: Column(
@@ -49,7 +49,7 @@ class const DeviceCard({
                     height: 44,
                     decoration: BoxDecoration(
                       color: zoneColor.withValues(alpha: 0.14),
-                      borderRadius: .circular(12),
+                      borderRadius: 12.radius,
                     ),
                     alignment: .center,
                     child: Icon(
@@ -91,7 +91,7 @@ class const DeviceCard({
                     padding: 10.hPadding + 6.vPadding,
                     decoration: BoxDecoration(
                       color: scheme.surfaceContainer,
-                      borderRadius: .circular(20),
+                      borderRadius: 20.radius,
                     ),
                     child: Row(
                       mainAxisSize: .min,
@@ -123,7 +123,7 @@ class const DeviceCard({
                     padding: 10.hPadding + 4.vPadding,
                     decoration: BoxDecoration(
                       color: zoneColor.withValues(alpha: 0.12),
-                      borderRadius: .circular(20),
+                      borderRadius: 20.radius,
                       border: Border.all(
                         color: zoneColor.withValues(alpha: 0.6),
                         width: 1,
@@ -160,7 +160,7 @@ class const DeviceCard({
                       color: scheme.surfaceContainerHighest.withValues(
                         alpha: 0.5,
                       ),
-                      borderRadius: .circular(20),
+                      borderRadius: 20.radius,
                     ),
                     child: Row(
                       mainAxisSize: .min,
