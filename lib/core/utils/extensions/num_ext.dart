@@ -36,4 +36,16 @@ extension NumX on num {
   /// Generates [SliverToBoxAdapter] with this width value.
   Widget get sliverWGap =>
       SliverToBoxAdapter(child: SizedBox(width: toDouble()));
+
+  /// Generates [BorderRadius.circular] with this radius value.
+  BorderRadius get radius => .circular(toDouble());
+
+  /// Generates [Radius.circular] with this radius value.
+  Radius get r => .circular(toDouble());
+
+  /// Generates [Duration.inMilliseconds] with this milliseconds value.
+  Duration get ms => Duration(milliseconds: toInt());
+
+  /// Generates [Duration.inSeconds] with this seconds value.
+  Duration get seconds => Duration(seconds: toInt());
 }
