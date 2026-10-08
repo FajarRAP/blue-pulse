@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../../core/utils/extensions.dart';
-import '../../../core/utils/preview_annotations.dart';
+import 'package:blue_pulse/core/utils/extensions.dart';
+import 'package:blue_pulse/core/utils/preview_annotations.dart';
 
 /// Representation of an RSSI threshold selection option.
 class const RssiThresholdOption({

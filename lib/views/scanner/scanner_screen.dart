@@ -1,12 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/di/injection.dart';
-import '../../core/utils/extensions.dart';
-import '../../core/utils/preview_annotations.dart';
-import '../../data/models/ble_device_model.dart';
-import '../../viewmodels/scanner_viewmodel.dart';
-import 'widgets/device_card.dart';
-import 'widgets/filter_bar.dart';
+import 'package:blue_pulse/core/di/injection.dart';
+import 'package:blue_pulse/core/utils/extensions.dart';
+import 'package:blue_pulse/core/utils/preview_annotations.dart';
+import 'package:blue_pulse/data/models/ble_device_model.dart';
+import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
+import 'package:blue_pulse/views/scanner/widgets/device_card.dart';
+import 'package:blue_pulse/views/scanner/widgets/filter_bar.dart';
 
 /// Screen 1: Dashboard Utama (Scanner View).
 ///

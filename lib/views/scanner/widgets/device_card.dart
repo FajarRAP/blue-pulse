@@ -3,7 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:blue_pulse/data/models/ble_device_model.dart';
 
-import '../../../core/utils/extensions.dart';
+import 'package:blue_pulse/core/utils/extensions.dart';
 
 /// Material 3 Card displaying real-time telemetry and metadata for a discovered BLE device.
 class const DeviceCard({
