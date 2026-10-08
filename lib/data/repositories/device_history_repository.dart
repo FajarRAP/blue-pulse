@@ -20,6 +20,7 @@ abstract interface class DeviceHistoryRepository {
 /// Concrete SQLite implementation of [DeviceHistoryRepository].
 class DeviceHistoryRepositoryImpl(final LocalDatabase _localDatabase)
     implements DeviceHistoryRepository {
+
   @override
   Future<void> upsertDevice(BleDeviceModel device) async {
     final db = await _localDatabase.database;
@@ -35,7 +36,7 @@ class DeviceHistoryRepositoryImpl(final LocalDatabase _localDatabase)
 
     final firstSeenMillis = existingRows.isNotEmpty
         ? (existingRows.first['first_seen'] as num).toInt()
-        : device.firstSeen.millisecondsSinceEpoch;
+        : (device.firstSeen ?? device.lastSeen).millisecondsSinceEpoch;
 
     final map = device.toMap();
     map['first_seen'] = firstSeenMillis;

@@ -25,7 +25,7 @@ void main() {
       expect(device.estimatedDistance, 2.1);
       expect(device.zone, ProximityZone.strong);
       expect(device.lastSeen, now);
-      expect(device.firstSeen, now);
+      expect(device.firstSeen, isNull);
       expect(device.txPower, isNull);
     });
 
@@ -53,7 +53,7 @@ void main() {
       expect(updated.lastSeen, now);
     });
 
-    test('toMap serializes properly for SQLite', () {
+    test('toMap serializes properly reflecting 100% of device_history schema', () {
       final first = DateTime(2026, 10, 8, 10, 0, 0);
       final last = DateTime(2026, 10, 8, 12, 0, 0);
 
@@ -61,20 +61,23 @@ void main() {
         id: '11:22:33:44:55:66',
         name: 'Beacon 123',
         rawRssi: -25,
-        smoothedRssi: -25.0,
+        smoothedRssi: -26.5,
         estimatedDistance: 0.5,
         zone: ProximityZone.veryStrong,
         lastSeen: last,
         firstSeen: first,
+        txPower: -59,
       );
 
       final map = device.toMap();
 
       expect(map['id'], '11:22:33:44:55:66');
       expect(map['name'], 'Beacon 123');
-      expect(map['last_rssi'], -25);
-      expect(map['last_distance'], 0.5);
-      expect(map['last_zone'], 'veryStrong');
+      expect(map['raw_rssi'], -25);
+      expect(map['smoothed_rssi'], -26.5);
+      expect(map['estimated_distance'], 0.5);
+      expect(map['proximity_zone'], 'veryStrong');
+      expect(map['tx_power'], -59);
       expect(map['first_seen'], first.millisecondsSinceEpoch);
       expect(map['last_seen'], last.millisecondsSinceEpoch);
     });
@@ -86,9 +89,11 @@ void main() {
       final row = <String, dynamic>{
         'id': '99:88:77:66:55:44',
         'name': 'Fitness Tracker',
-        'last_rssi': -65,
-        'last_distance': 4.8,
-        'last_zone': 'fair',
+        'raw_rssi': -65,
+        'smoothed_rssi': -66.2,
+        'estimated_distance': 4.8,
+        'proximity_zone': 'fair',
+        'tx_power': -59,
         'first_seen': first.millisecondsSinceEpoch,
         'last_seen': last.millisecondsSinceEpoch,
       };
@@ -98,25 +103,31 @@ void main() {
       expect(device.id, '99:88:77:66:55:44');
       expect(device.name, 'Fitness Tracker');
       expect(device.rawRssi, -65);
-      expect(device.smoothedRssi, -65.0);
+      expect(device.smoothedRssi, -66.2);
       expect(device.estimatedDistance, 4.8);
       expect(device.zone, ProximityZone.fair);
+      expect(device.txPower, -59);
       expect(device.firstSeen, first);
       expect(device.lastSeen, last);
     });
 
-    test('fromMap falls back to "Unknown Device" when name is null or empty', () {
+    test('fromMap handles null tx_power correctly', () {
       final row = <String, dynamic>{
         'id': '00:00:00:00:00:00',
-        'name': '',
-        'last_rssi': -85,
-        'last_distance': 22.0,
-        'last_zone': 'veryWeak',
+        'name': 'Unknown Device',
+        'raw_rssi': -85,
+        'smoothed_rssi': -85.0,
+        'estimated_distance': 22.0,
+        'proximity_zone': 'veryWeak',
+        'tx_power': null,
+        'first_seen': now.millisecondsSinceEpoch,
         'last_seen': now.millisecondsSinceEpoch,
       };
 
       final device = BleDeviceModel.fromMap(row);
       expect(device.name, 'Unknown Device');
+      expect(device.txPower, isNull);
+      expect(device.zone, ProximityZone.veryWeak);
     });
 
     test('equality and hashCode are based on Equatable value equality', () {

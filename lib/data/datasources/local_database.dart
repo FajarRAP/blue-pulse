@@ -4,11 +4,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:blue_pulse/core/constants/app_constants.dart';
 
 /// SQLite Database DataSource for persisting discovered BLE device history.
-class LocalDatabase {
-  LocalDatabase([this._database]);
-
-  Database? _database;
-
+class LocalDatabase([var Database? _database]) {
   /// Returns the open [Database] instance, initializing it lazily if not already open.
   Future<Database> get database async {
     if (_database != null) {
@@ -31,9 +27,11 @@ class LocalDatabase {
           CREATE TABLE ${AppConstants.historyTableName} (
             id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
-            last_rssi INTEGER NOT NULL,
-            last_distance REAL NOT NULL,
-            last_zone TEXT NOT NULL,
+            raw_rssi INTEGER NOT NULL,
+            smoothed_rssi REAL NOT NULL,
+            estimated_distance REAL NOT NULL,
+            proximity_zone TEXT NOT NULL,
+            tx_power INTEGER,
             first_seen INTEGER NOT NULL,
             last_seen INTEGER NOT NULL
           );
