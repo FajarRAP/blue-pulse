@@ -15,10 +15,14 @@ import 'package:blue_pulse/services/permission_service.dart';
 /// Coordinates Bluetooth Low Energy scanning, real-time signal processing,
 /// auto-sorting by RSSI descending, multi-criteria filtering, and debounced
 /// persistence to the local SQLite database.
-class ScannerViewModel extends ChangeNotifier {
-  final BleService bleService;
-  final DeviceHistoryRepository historyRepository;
-  final PermissionService permissionService;
+class ScannerViewModel({
+  required final BleService _bleService,
+  required final DeviceHistoryRepository _historyRepository,
+  required final PermissionService _permissionService,
+}) extends ChangeNotifier {
+  this {
+    _init();
+  }
 
   StreamSubscription<List<ScanResult>>? _scanSubscription;
   StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
@@ -30,33 +34,27 @@ class ScannerViewModel extends ChangeNotifier {
   bool _isScanning = false;
   String _searchQuery = '';
   int? _rssiThreshold;
-  BluetoothAdapterState _adapterState = BluetoothAdapterState.unknown;
+  BluetoothAdapterState _adapterState = .unknown;
   String? _errorMessage;
 
-  ScannerViewModel({
-    required this.bleService,
-    required this.historyRepository,
-    required this.permissionService,
-  }) {
-    _init();
-  }
-
   void _init() {
-    _isScanning = bleService.isScanning;
+    _isScanning = _bleService.isScanning;
 
-    _isScanningSubscription = bleService.isScanningStream.listen((scanning) {
+    _isScanningSubscription = _bleService.isScanningStream.listen((scanning) {
       if (_isScanning != scanning) {
         _isScanning = scanning;
         notifyListeners();
       }
     });
 
-    _adapterStateSubscription = bleService.adapterStateStream.listen((state) {
+    _adapterStateSubscription = _bleService.adapterStateStream.listen((state) {
       _adapterState = state;
-      if (state == BluetoothAdapterState.off) {
-        _errorMessage = 'Bluetooth dalam keadaan mati. Silakan aktifkan Bluetooth.';
-      } else if (state == BluetoothAdapterState.unauthorized) {
-        _errorMessage = 'Akses Bluetooth tidak diizinkan. Silakan periksa izin perangkat.';
+      if (state == .off) {
+        _errorMessage =
+            'Bluetooth dalam keadaan mati. Silakan aktifkan Bluetooth.';
+      } else if (state == .unauthorized) {
+        _errorMessage =
+            'Akses Bluetooth tidak diizinkan. Silakan periksa izin perangkat.';
       } else if (_errorMessage != null &&
           (_errorMessage!.contains('Bluetooth dalam keadaan mati') ||
               _errorMessage!.contains('Akses Bluetooth tidak diizinkan'))) {
@@ -65,7 +63,7 @@ class ScannerViewModel extends ChangeNotifier {
       notifyListeners();
     });
 
-    _scanSubscription = bleService.scanResultsStream.listen(_onScanResults);
+    _scanSubscription = _bleService.scanResultsStream.listen(_onScanResults);
   }
 
   // --- Getters ---
@@ -89,7 +87,8 @@ class ScannerViewModel extends ChangeNotifier {
   int get totalDevicesCount => _devices.length;
 
   /// Indicates whether any filter criteria (query or threshold) is active.
-  bool get hasActiveFilters => _searchQuery.isNotEmpty || _rssiThreshold != null;
+  bool get hasActiveFilters =>
+      _searchQuery.isNotEmpty || _rssiThreshold != null;
 
   /// Filtered and auto-sorted list of discovered BLE devices.
   ///
@@ -134,21 +133,23 @@ class ScannerViewModel extends ChangeNotifier {
   Future<void> startScan() async {
     _errorMessage = null;
 
-    final hasPermission = await permissionService.requestBlePermissions();
+    final hasPermission = await _permissionService.requestBlePermissions();
     if (!hasPermission) {
-      _errorMessage = 'Izin Bluetooth dan Lokasi diperlukan untuk memindai perangkat.';
+      _errorMessage =
+          'Izin Bluetooth dan Lokasi diperlukan untuk memindai perangkat.';
       notifyListeners();
       return;
     }
 
-    if (_adapterState == BluetoothAdapterState.off) {
-      _errorMessage = 'Bluetooth dalam keadaan mati. Silakan aktifkan Bluetooth.';
+    if (_adapterState == .off) {
+      _errorMessage =
+          'Bluetooth dalam keadaan mati. Silakan aktifkan Bluetooth.';
       notifyListeners();
       return;
     }
 
     try {
-      await bleService.startScan();
+      await _bleService.startScan();
     } catch (e) {
       _errorMessage = 'Gagal memulai pemindaian: $e';
       notifyListeners();
@@ -158,7 +159,7 @@ class ScannerViewModel extends ChangeNotifier {
   /// Terminates an ongoing BLE scan.
   Future<void> stopScan() async {
     try {
-      await bleService.stopScan();
+      await _bleService.stopScan();
     } catch (e) {
       _errorMessage = 'Gagal menghentikan pemindaian: $e';
       notifyListeners();
@@ -210,8 +211,12 @@ class ScannerViewModel extends ChangeNotifier {
       final existing = _devices[id];
       final prevSmoothed = existing?.smoothedRssi ?? 0.0;
       final smoothed = SignalMath.smoothRssi(prevSmoothed, result.rssi);
-      final txPower = result.advertisementData.txPowerLevel ?? AppConstants.defaultTxPower;
-      final distance = SignalMath.calculateDistance(result.rssi, txPower: txPower);
+      final txPower =
+          result.advertisementData.txPowerLevel ?? AppConstants.defaultTxPower;
+      final distance = SignalMath.calculateDistance(
+        result.rssi,
+        txPower: txPower,
+      );
       final zone = SignalMath.classifyZone(result.rssi);
 
       final model = BleDeviceModel(
@@ -230,9 +235,10 @@ class ScannerViewModel extends ChangeNotifier {
 
       // Debounced SQLite upsert: write at most once per second per device
       final lastWrite = _lastDbWriteTimes[id];
-      if (lastWrite == null || now.difference(lastWrite) >= const Duration(seconds: 1)) {
+      if (lastWrite == null ||
+          now.difference(lastWrite) >= const Duration(seconds: 1)) {
         _lastDbWriteTimes[id] = now;
-        unawaited(historyRepository.upsertDevice(model));
+        unawaited(_historyRepository.upsertDevice(model));
       }
     }
 
