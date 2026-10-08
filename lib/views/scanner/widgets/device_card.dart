@@ -1,18 +1,20 @@
+import 'package:blue_pulse/core/utils/preview_annotations.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'package:blue_pulse/data/models/ble_device_model.dart';
+
+import '../../../core/utils/extensions.dart';
 
 /// Material 3 Card displaying real-time telemetry and metadata for a discovered BLE device.
 class const DeviceCard({
   super.key,
   required final BleDeviceModel device,
-  required final VoidCallback onTap,
+  final VoidCallback? onTap,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
+    final scheme = context.scheme;
+    final text = context.text;
     final zoneColor = device.zone.color;
 
     final distanceText = device.estimatedDistance >= 0
@@ -21,20 +23,20 @@ class const DeviceCard({
 
     return Card(
       elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      margin: .zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: .circular(16),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+          color: scheme.outlineVariant.withValues(alpha: 0.6),
           width: 1,
         ),
       ),
       clipBehavior: .antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: .circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: 16.allPadding,
           child: Column(
             crossAxisAlignment: .start,
             children: [
@@ -47,7 +49,7 @@ class const DeviceCard({
                     height: 44,
                     decoration: BoxDecoration(
                       color: zoneColor.withValues(alpha: 0.14),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: .circular(12),
                     ),
                     alignment: .center,
                     child: Icon(
@@ -56,7 +58,7 @@ class const DeviceCard({
                       size: 24,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  12.wGap,
                   // Device Name & MAC Address
                   Expanded(
                     child: Column(
@@ -64,34 +66,32 @@ class const DeviceCard({
                       children: [
                         Text(
                           device.name,
-                          style: textTheme.titleMedium?.copyWith(
-                            fontWeight: .bold,
-                          ),
+                          style: text.titleMedium?.copyWith(fontWeight: .bold),
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          overflow: .ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        4.hGap,
                         Text(
                           device.id,
                           style: TextStyle(
                             fontFamily: 'monospace',
                             fontSize: 12,
-                            color: colorScheme.onSurfaceVariant,
+                            color: scheme.onSurfaceVariant,
                             letterSpacing: 0.5,
                           ),
                           maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          overflow: .ellipsis,
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  8.wGap,
                   // Raw RSSI Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: 10.hPadding + 6.vPadding,
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(20),
+                      color: scheme.surfaceContainer,
+                      borderRadius: .circular(20),
                     ),
                     child: Row(
                       mainAxisSize: .min,
@@ -101,12 +101,12 @@ class const DeviceCard({
                           size: 14,
                           color: zoneColor,
                         ),
-                        const SizedBox(width: 4),
+                        4.wGap,
                         Text(
                           '${device.rawRssi} dBm',
-                          style: textTheme.labelMedium?.copyWith(
+                          style: text.labelMedium?.copyWith(
                             fontWeight: .bold,
-                            color: colorScheme.onSurfaceVariant,
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -114,16 +114,16 @@ class const DeviceCard({
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              14.hGap,
               // Bottom Telemetry Row: Proximity Zone Pill, Distance Badge, Navigation Chevron
               Row(
                 children: [
                   // Proximity Zone Pill
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: 10.hPadding + 4.vPadding,
                     decoration: BoxDecoration(
                       color: zoneColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: .circular(20),
                       border: Border.all(
                         color: zoneColor.withValues(alpha: 0.6),
                         width: 1,
@@ -136,11 +136,11 @@ class const DeviceCard({
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
+                            shape: .circle,
                             color: zoneColor,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        6.wGap,
                         Text(
                           device.zone.displayName,
                           style: TextStyle(
@@ -152,13 +152,15 @@ class const DeviceCard({
                       ],
                     ),
                   ),
-                  const SizedBox(width: 8),
+                  8.wGap,
                   // Estimated Distance Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: 10.hPadding + 4.vPadding,
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(20),
+                      color: scheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
+                      borderRadius: .circular(20),
                     ),
                     child: Row(
                       mainAxisSize: .min,
@@ -166,14 +168,14 @@ class const DeviceCard({
                         Icon(
                           Icons.straighten_rounded,
                           size: 13,
-                          color: colorScheme.onSurfaceVariant,
+                          color: scheme.onSurfaceVariant,
                         ),
-                        const SizedBox(width: 4),
+                        4.wGap,
                         Text(
                           distanceText,
-                          style: textTheme.bodySmall?.copyWith(
+                          style: text.bodySmall?.copyWith(
                             fontWeight: .w600,
-                            color: colorScheme.onSurfaceVariant,
+                            color: scheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -183,7 +185,7 @@ class const DeviceCard({
                   // Chevron Indicator
                   Icon(
                     Icons.chevron_right_rounded,
-                    color: colorScheme.outline,
+                    color: scheme.outline,
                     size: 20,
                   ),
                 ],
@@ -194,4 +196,24 @@ class const DeviceCard({
       ),
     );
   }
+}
+
+@BluePulsePreview(name: 'Device Card')
+Widget preview() {
+  return Column(
+    children: [
+      DeviceCard(
+        device: .new(
+          id: 'id',
+          name: 'name',
+          rawRssi: 100,
+          smoothedRssi: 101,
+          estimatedDistance: 50,
+          zone: .fair,
+          lastSeen: .now(),
+        ),
+        onTap: () {},
+      ),
+    ],
+  );
 }
