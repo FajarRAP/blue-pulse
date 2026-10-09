@@ -5,6 +5,7 @@ import 'package:blue_pulse/core/utils/extensions.dart';
 import 'package:blue_pulse/core/utils/preview_annotations.dart';
 import 'package:blue_pulse/data/models/ble_device_model.dart';
 import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
+import 'package:blue_pulse/views/radar/radar_screen.dart';
 import 'package:blue_pulse/views/scanner/widgets/device_card.dart';
 import 'package:blue_pulse/views/scanner/widgets/filter_bar.dart';
 
@@ -56,22 +57,9 @@ class _ScannerScreenState extends State<ScannerScreen> {
       return;
     }
 
-    // Default placeholder action for Milestone 3 (Milestone 4 connects to RadarScreen)
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.radar_rounded, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text('Perangkat dipilih: ${device.name} (${device.id})'),
-            ),
-          ],
-        ),
-        behavior: .floating,
-        duration: 2.seconds,
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => RadarScreen(targetDevice: device),
       ),
     );
   }

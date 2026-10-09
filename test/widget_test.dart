@@ -5,13 +5,18 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:blue_pulse/core/constants/app_constants.dart';
 import 'package:blue_pulse/core/di/injection.dart';
+import 'package:blue_pulse/core/utils/signal_math.dart';
 import 'package:blue_pulse/data/datasources/local_database.dart';
 import 'package:blue_pulse/data/models/ble_device_model.dart';
 import 'package:blue_pulse/data/repositories/device_history_repository.dart';
 import 'package:blue_pulse/main.dart';
 import 'package:blue_pulse/services/ble_service.dart';
 import 'package:blue_pulse/services/permission_service.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:blue_pulse/viewmodels/radar_viewmodel.dart';
 import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
+import 'package:blue_pulse/views/radar/radar_screen.dart';
+import 'package:blue_pulse/views/scanner/scanner_screen.dart';
 
 class MockBleService implements BleService {
   final _scanController = StreamController<List<ScanResult>>.broadcast();
@@ -79,6 +84,13 @@ void main() {
         permissionService: locator<PermissionService>(),
       ),
     );
+    locator.registerFactoryParam<RadarViewModel, BleDeviceModel, void>(
+      (device, _) => RadarViewModel(
+        bleService: locator<BleService>(),
+        historyRepository: locator<DeviceHistoryRepository>(),
+        initialDevice: device,
+      ),
+    );
   });
 
   tearDown(() async {
@@ -103,5 +115,38 @@ void main() {
     expect(find.text('≥ -80 dBm'), findsOneWidget);
     expect(find.text('≥ -70 dBm'), findsOneWidget);
     expect(find.text('≥ -60 dBm'), findsOneWidget);
+  });
+
+  testWidgets('navigates from ScannerScreen to RadarScreen on device tap', (tester) async {
+    final viewModel = locator<ScannerViewModel>();
+    final testDevice = BleDeviceModel(
+      id: 'AA:BB:CC:DD:EE:01',
+      name: 'Test Beacon One',
+      rawRssi: -55,
+      smoothedRssi: -55.0,
+      estimatedDistance: 2.0,
+      zone: ProximityZone.strong,
+      lastSeen: DateTime.now(),
+    );
+
+    viewModel.addDeviceForTesting(testDevice);
+
+    await tester.pumpWidget(MaterialApp(
+      home: ScannerScreen(viewModel: viewModel),
+    ));
+    await tester.pump();
+
+    // Verify device is displayed in list
+    expect(find.text('Test Beacon One'), findsOneWidget);
+
+    // Tap on device card
+    await tester.tap(find.text('Test Beacon One'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Verify RadarScreen is rendered
+    expect(find.byType(RadarScreen), findsOneWidget);
+    expect(find.text('ESTIMASI JARAK'), findsOneWidget);
+    expect(find.text('AA:BB:CC:DD:EE:01'), findsOneWidget);
   });
 }
