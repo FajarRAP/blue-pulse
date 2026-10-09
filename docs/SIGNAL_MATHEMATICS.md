@@ -67,7 +67,8 @@ Sesuai tabel spesifikasi studi kasus Goodeva (Halaman 2), spektrum kekuatan siny
 
 ## 4. Referensi Implementasi Kode
 
-- **Kelas Implementasi:** [`SignalMath`](file:///C:/Users/fajar/.gemini/antigravity/worktrees/goodeva_test/implement_signal_math_engine/lib/core/utils/signal_math.dart)
-- **Konstanta Domain:** [`AppConstants`](file:///C:/Users/fajar/.gemini/antigravity/worktrees/goodeva_test/implement_signal_math_engine/lib/core/constants/app_constants.dart)
-- **Palet Warna Telemetri:** [`AppColors`](file:///C:/Users/fajar/.gemini/antigravity/worktrees/goodeva_test/implement_signal_math_engine/lib/core/constants/app_colors.dart)
-- **Unit Test Suite:** [`signal_math_test.dart`](file:///C:/Users/fajar/.gemini/antigravity/worktrees/goodeva_test/implement_signal_math_engine/test/unit/signal_math_test.dart)
+- **Kelas Implementasi:** [`SignalMath`](../lib/core/utils/signal_math.dart)
+- **Konstanta Domain:** [`AppConstants`](../lib/core/constants/app_constants.dart)
+- **Palet Warna Telemetri:** [`AppColors`](../lib/core/constants/app_colors.dart)
+- **Unit Test Suite:** [`signal_math_test.dart`](../test/unit/signal_math_test.dart)
+
