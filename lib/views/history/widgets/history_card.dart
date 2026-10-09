@@ -123,7 +123,8 @@ class const HistoryCard({
               ),
               12.hGap,
               // Telemetry Row: Proximity Zone Pill, RSSI Badge, Distance Badge, Quick-Track Chevron
-              Row(
+              Wrap(
+                spacing: 8,
                 children: [
                   // Proximity Zone Pill
                   Container(
@@ -131,7 +132,7 @@ class const HistoryCard({
                     decoration: BoxDecoration(
                       color: zoneColor.withValues(alpha: 0.12),
                       borderRadius: 20.radius,
-                      border: Border.all(
+                      border: .all(
                         color: zoneColor.withValues(alpha: 0.6),
                         width: 1,
                       ),
@@ -159,7 +160,6 @@ class const HistoryCard({
                       ],
                     ),
                   ),
-                  8.wGap,
                   // Raw RSSI Badge
                   Container(
                     padding: 8.hPadding + 4.vPadding,
@@ -186,7 +186,6 @@ class const HistoryCard({
                       ],
                     ),
                   ),
-                  8.wGap,
                   // Estimated Distance Badge
                   Container(
                     padding: 8.hPadding + 4.vPadding,
@@ -214,13 +213,6 @@ class const HistoryCard({
                         ),
                       ],
                     ),
-                  ),
-                  const Spacer(),
-                  // Quick-Track Navigation Chevron
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: scheme.outline,
-                    size: 20,
                   ),
                 ],
               ),

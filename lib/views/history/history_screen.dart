@@ -12,10 +12,8 @@ import 'package:blue_pulse/views/radar/radar_screen.dart';
 ///
 /// Stateful Screen Wrapper that coordinates the lifecycle of [HistoryViewModel]
 /// and binds state to the pure presentation component [_HistoryView].
-class const HistoryScreen({
-  super.key,
-  final HistoryViewModel? viewModel,
-}) extends StatefulWidget {
+class const HistoryScreen({super.key, final HistoryViewModel? viewModel})
+    extends StatefulWidget {
   @override
   State<HistoryScreen> createState() => _HistoryScreenState();
 }
@@ -48,35 +46,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   void _navigateToRadar(BleDeviceModel device) {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => RadarScreen(targetDevice: device),
-      ),
+      MaterialPageRoute(builder: (_) => RadarScreen(targetDevice: device)),
     );
   }
 
   Future<void> _confirmDeleteDevice(BleDeviceModel device) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Hapus Perangkat?'),
-        content: Text(
-          'Apakah Anda yakin ingin menghapus "${device.name}" (${device.id}) dari riwayat?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
+      builder: (dialogContext) {
+        final scheme = dialogContext.scheme;
+
+        return AlertDialog(
+          title: const Text('Hapus Perangkat?'),
+          content: Text(
+            'Apakah Anda yakin ingin menghapus "${device.name}" (${device.id}) dari riwayat?',
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Batal'),
             ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.error,
+                foregroundColor: scheme.onError,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true && mounted) {
@@ -92,26 +92,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Future<void> _confirmClearAll() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Hapus Semua Riwayat?'),
-        content: const Text(
-          'Seluruh data riwayat perangkat yang tersimpan akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Batal'),
+      builder: (dialogContext) {
+        final scheme = dialogContext.scheme;
+
+        return AlertDialog(
+          title: const Text('Hapus Semua Riwayat?'),
+          content: const Text(
+            'Seluruh data riwayat perangkat yang tersimpan akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.',
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-              foregroundColor: Theme.of(dialogContext).colorScheme.onError,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Batal'),
             ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Hapus Semua'),
-          ),
-        ],
-      ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: scheme.error,
+                foregroundColor: scheme.onError,
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Hapus Semua'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed == true && mounted) {
@@ -147,11 +151,11 @@ class const _HistoryView({
   required final List<BleDeviceModel> devices,
   required final bool isLoading,
   required final String? errorMessage,
-  required final Future<void> Function() onRefresh,
-  required final ValueChanged<BleDeviceModel> onDeviceTap,
-  required final ValueChanged<BleDeviceModel> onDeleteDevice,
-  required final VoidCallback onClearAll,
-  required final VoidCallback onBack,
+  required final RefreshCallback onRefresh,
+  final ValueChanged<BleDeviceModel>? onDeviceTap,
+  final ValueChanged<BleDeviceModel>? onDeleteDevice,
+  final VoidCallback? onClearAll,
+  final VoidCallback? onBack,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -178,11 +182,9 @@ class const _HistoryView({
         ],
         actionsPadding: 8.rPadding,
       ),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: onRefresh,
-          child: _buildContent(context, scheme, text),
-        ),
+      body: RefreshIndicator(
+        onRefresh: onRefresh,
+        child: _buildContent(context, scheme, text),
       ),
     );
   }
@@ -197,114 +199,20 @@ class const _HistoryView({
     }
 
     if (errorMessage != null && devices.isEmpty) {
-      return LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Padding(
-                padding: 24.allPadding,
-                child: Column(
-                  mainAxisSize: .min,
-                  children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 48,
-                      color: scheme.error,
-                    ),
-                    12.hGap,
-                    Text(
-                      'Gagal Memuat Riwayat',
-                      style: text.titleMedium?.copyWith(fontWeight: .bold),
-                    ),
-                    6.hGap,
-                    Text(
-                      errorMessage!,
-                      textAlign: .center,
-                      style: text.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                    16.hGap,
-                    FilledButton.tonalIcon(
-                      onPressed: onRefresh,
-                      icon: const Icon(Icons.refresh_rounded, size: 18),
-                      label: const Text('Coba Lagi'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+      return _HasErrorMessage(
+        errorMessage: errorMessage!,
+        onRefresh: onRefresh,
       );
     }
 
     if (devices.isEmpty) {
-      return LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: Padding(
-                padding: 32.allPadding,
-                child: Column(
-                  mainAxisSize: .min,
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHighest.withValues(
-                          alpha: 0.5,
-                        ),
-                        shape: .circle,
-                      ),
-                      alignment: .center,
-                      child: Icon(
-                        Icons.history_rounded,
-                        size: 40,
-                        color: scheme.primary,
-                      ),
-                    ),
-                    20.hGap,
-                    Text(
-                      'Belum Ada Riwayat',
-                      style: text.titleMedium?.copyWith(fontWeight: .bold),
-                    ),
-                    8.hGap,
-                    Text(
-                      'Perangkat BLE yang terdeteksi saat pemindaian akan otomatis tercatat di sini.',
-                      textAlign: .center,
-                      style: text.bodyMedium?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
+      return const _EmptyDevices();
     }
 
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: 16.allPadding,
-      itemCount: devices.length,
-      separatorBuilder: (_, _) => 12.hGap,
-      itemBuilder: (context, index) {
-        final device = devices[index];
-        return HistoryCard(
-          key: ValueKey(device.id),
-          device: device,
-          onTap: () => onDeviceTap(device),
-          onDelete: () => onDeleteDevice(device),
-        );
-      },
+    return _DeviceList(
+      devices: devices,
+      onDeviceTap: onDeviceTap,
+      onDeleteDevice: onDeleteDevice,
     );
   }
 }
@@ -363,4 +271,143 @@ Widget previewHistoryEmpty() {
     onClearAll: () {},
     onBack: () {},
   );
+}
+
+class const _HasErrorMessage({
+  required final String errorMessage,
+  final VoidCallback? onRefresh,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = context.scheme;
+    final text = context.text;
+
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: Padding(
+              padding: 24.allPadding,
+              child: Column(
+                mainAxisSize: .min,
+                children: [
+                  Icon(
+                    Icons.error_outline_rounded,
+                    size: 48,
+                    color: scheme.error,
+                  ),
+                  12.hGap,
+                  Text(
+                    'Gagal Memuat Riwayat',
+                    style: text.titleMedium?.copyWith(fontWeight: .bold),
+                  ),
+                  6.hGap,
+                  Text(
+                    errorMessage,
+                    textAlign: .center,
+                    style: text.bodySmall?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                  16.hGap,
+                  FilledButton.tonalIcon(
+                    onPressed: onRefresh,
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class const _EmptyDevices() extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final scheme = context.scheme;
+    final text = context.text;
+
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Center(
+            child: Padding(
+              padding: 32.allPadding,
+              child: Column(
+                mainAxisSize: .min,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
+                      shape: .circle,
+                    ),
+                    alignment: .center,
+                    child: Icon(
+                      Icons.history_rounded,
+                      size: 40,
+                      color: scheme.primary,
+                    ),
+                  ),
+                  20.hGap,
+                  Text(
+                    'Belum Ada Riwayat',
+                    style: text.titleMedium?.copyWith(fontWeight: .bold),
+                  ),
+                  8.hGap,
+                  Text(
+                    'Perangkat BLE yang terdeteksi saat pemindaian akan otomatis tercatat di sini.',
+                    textAlign: .center,
+                    style: text.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class const _DeviceList({
+  required final List<BleDeviceModel> devices,
+  final ValueChanged<BleDeviceModel>? onDeviceTap,
+  final ValueChanged<BleDeviceModel>? onDeleteDevice,
+}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final viewPadding = context.viewPadding;
+
+    return ListView.separated(
+      itemBuilder: (context, index) {
+        final device = devices[index];
+
+        return HistoryCard(
+          key: ValueKey(device.id),
+          device: device,
+          onTap: onDeviceTap == null ? null : () => onDeviceTap?.call(device),
+          onDelete: onDeleteDevice == null
+              ? null
+              : () => onDeleteDevice?.call(device),
+        );
+      },
+      separatorBuilder: (context, index) => 8.hGap,
+      itemCount: devices.length,
+      padding: 16.allPadding + viewPadding.bottom.bPadding,
+    );
+  }
 }
