@@ -36,8 +36,11 @@ class RadarViewModel({
   late BleDeviceModel _targetDevice;
   late DateTime _lastPacketTime;
   late bool _isLost;
+  bool _isBluetoothDisabled = false;
+  BluetoothAdapterState _adapterState = .unknown;
 
   StreamSubscription<List<ScanResult>>? _scanSubscription;
+  StreamSubscription<BluetoothAdapterState>? _adapterStateSubscription;
   Timer? _watchdogTimer;
 
   final List<int> _rssiHistory = [];
@@ -50,6 +53,12 @@ class RadarViewModel({
 
   /// Whether the tracked target signal is lost (> 10s without packet or zone == lost).
   bool get isLost => _isLost;
+
+  /// Whether the target signal is considered lost due to Bluetooth hardware being disabled.
+  bool get isBluetoothDisabled => _isBluetoothDisabled;
+
+  /// Current Bluetooth adapter power state.
+  BluetoothAdapterState get adapterState => _adapterState;
 
   /// Elapsed duration since the last BLE advertising packet was received from the target.
   Duration get timeSinceLastPacket => _currentTime.difference(_lastPacketTime);
@@ -120,6 +129,31 @@ class RadarViewModel({
       } catch (_) {}
     }
 
+    _adapterStateSubscription = _bleService.adapterStateStream.listen((state) {
+      _adapterState = state;
+      if (state == .off) {
+        _isBluetoothDisabled = true;
+        _isLost = true;
+        _targetDevice = _targetDevice.copyWith(zone: .lost);
+        if (_bleService.isScanning) {
+          try {
+            _bleService.stopScan();
+          } catch (_) {}
+        }
+        notifyListeners();
+      } else if (state == .on) {
+        if (_isBluetoothDisabled) {
+          _isBluetoothDisabled = false;
+          if (!_bleService.isScanning) {
+            try {
+              _bleService.startScan();
+            } catch (_) {}
+          }
+          notifyListeners();
+        }
+      }
+    });
+
     _scanSubscription = _bleService.scanResultsStream.listen(_onScanResults);
     _watchdogTimer = Timer.periodic(1.seconds, (_) => checkWatchdog());
   }
@@ -139,6 +173,7 @@ class RadarViewModel({
     final now = _currentTime;
     _lastPacketTime = now;
     _isLost = false;
+    _isBluetoothDisabled = false;
 
     _packetTimestamps.add(now);
     _packetTimestamps.removeWhere((t) => now.difference(t) > 5.seconds);
@@ -185,6 +220,9 @@ class RadarViewModel({
   /// Marks target as [ProximityZone.lost] and sets [isLost] to `true`
   /// if no packet is received for longer than [AppConstants.signalLostThreshold] (10s).
   void checkWatchdog() {
+    if (_isBluetoothDisabled) {
+      return;
+    }
     final diff = _currentTime.difference(_lastPacketTime);
     if (diff > AppConstants.signalLostThreshold) {
       if (!_isLost || _targetDevice.zone != .lost) {
@@ -194,6 +232,15 @@ class RadarViewModel({
       }
     } else {
       notifyListeners();
+    }
+  }
+
+  /// Retries starting BLE scan for radar tracking.
+  Future<void> retryScan() async {
+    if (!_bleService.isScanning) {
+      try {
+        await _bleService.startScan();
+      } catch (_) {}
     }
   }
 
@@ -212,6 +259,7 @@ class RadarViewModel({
   @override
   void dispose() {
     _scanSubscription?.cancel();
+    _adapterStateSubscription?.cancel();
     _watchdogTimer?.cancel();
     super.dispose();
   }

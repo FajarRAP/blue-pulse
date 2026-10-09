@@ -7,6 +7,7 @@ import 'package:blue_pulse/data/models/ble_device_model.dart';
 import 'package:blue_pulse/viewmodels/radar_viewmodel.dart';
 import 'package:blue_pulse/views/radar/widgets/radar_canvas.dart';
 import 'package:blue_pulse/views/radar/widgets/telemetry_card.dart';
+import 'package:blue_pulse/views/scanner/widgets/bluetooth_warning_banner.dart';
 
 /// Screen 2: Detail Pelacakan (Radar View).
 ///
@@ -49,10 +50,12 @@ class _RadarScreenState extends State<RadarScreen> {
         return _RadarView(
           device: _viewModel.targetDevice,
           isLost: _viewModel.isLost,
+          isBluetoothDisabled: _viewModel.isBluetoothDisabled,
           packetRate: _viewModel.packetRate,
           stabilityScore: _viewModel.stabilityScore,
           timeSinceLastPacket: _viewModel.timeSinceLastPacket,
           onBack: () => Navigator.of(context).pop(),
+          onRetryScan: _viewModel.retryScan,
         );
       },
     );
@@ -65,10 +68,12 @@ class _RadarScreenState extends State<RadarScreen> {
 class const _RadarView({
   required final BleDeviceModel device,
   required final bool isLost,
+  final bool isBluetoothDisabled = false,
   required final double packetRate,
   required final String stabilityScore,
   required final Duration timeSinceLastPacket,
   required final VoidCallback onBack,
+  final VoidCallback? onRetryScan,
 }) extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -138,14 +143,18 @@ class const _RadarView({
                       ),
                     ] else ...[
                       Icon(
-                        Icons
-                            .signal_cellular_connected_no_internet_0_bar_rounded,
+                        isBluetoothDisabled
+                            ? Icons.bluetooth_disabled_rounded
+                            : Icons
+                                .signal_cellular_connected_no_internet_0_bar_rounded,
                         size: 14,
                         color: scheme.onErrorContainer,
                       ),
                       6.wGap,
                       Text(
-                        'Sinyal Terputus',
+                        isBluetoothDisabled
+                            ? 'Bluetooth Dinonaktifkan'
+                            : 'Sinyal Terputus',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: .w700,
@@ -165,6 +174,16 @@ class const _RadarView({
           padding: 16.allPadding,
           child: Column(
             children: [
+              if (isBluetoothDisabled) ...[
+                BluetoothWarningBanner(
+                  message:
+                      'Bluetooth dinonaktifkan. Silakan aktifkan Bluetooth untuk melanjutkan pelacakan radar.',
+                  actionLabel: 'Coba Lagi',
+                  margin: .zero,
+                  onAction: onRetryScan,
+                ),
+                16.hGap,
+              ],
               // Responsive Radar Canvas Area
               ConstrainedBox(
                 constraints: const BoxConstraints(
@@ -233,5 +252,27 @@ Widget previewSignalLost() {
     stabilityScore: 'Terputus',
     timeSinceLastPacket: 12.seconds,
     onBack: () {},
+  );
+}
+
+@BluePulsePreview(name: 'Bluetooth Disabled', group: 'RadarScreen')
+Widget previewBluetoothDisabled() {
+  return _RadarView(
+    device: .new(
+      id: 'F4:84:4C:12:34:56',
+      name: 'Pulse Tracker Alpha',
+      rawRssi: -94,
+      smoothedRssi: -92.0,
+      estimatedDistance: -1.0,
+      zone: .lost,
+      lastSeen: .now(),
+    ),
+    isLost: true,
+    isBluetoothDisabled: true,
+    packetRate: 0.0,
+    stabilityScore: 'Terputus',
+    timeSinceLastPacket: 15.seconds,
+    onBack: () {},
+    onRetryScan: () {},
   );
 }

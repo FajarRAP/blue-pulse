@@ -33,6 +33,8 @@ class ScannerViewModel({
   final _lastDbWriteTimes = <String, DateTime>{};
 
   bool _isScanning = false;
+  bool _wasScanningBeforePaused = false;
+  bool _isPermissionDenied = false;
   String _searchQuery = '';
   int? _rssiThreshold;
   BluetoothAdapterState _adapterState = .unknown;
@@ -53,13 +55,22 @@ class ScannerViewModel({
       if (state == .off) {
         _errorMessage =
             'Bluetooth dalam keadaan mati. Silakan aktifkan Bluetooth.';
+        if (_isScanning) {
+          unawaited(stopScan());
+        }
       } else if (state == .unauthorized) {
         _errorMessage =
             'Akses Bluetooth tidak diizinkan. Silakan periksa izin perangkat.';
-      } else if (_errorMessage != null &&
-          (_errorMessage!.contains('Bluetooth dalam keadaan mati') ||
-              _errorMessage!.contains('Akses Bluetooth tidak diizinkan'))) {
-        _errorMessage = null;
+        if (_isScanning) {
+          unawaited(stopScan());
+        }
+      } else if (state == .on) {
+        if (_errorMessage != null &&
+            (_errorMessage!.contains('Bluetooth dalam keadaan mati') ||
+                _errorMessage!.contains('Akses Bluetooth tidak diizinkan') ||
+                _errorMessage!.contains('Bluetooth tidak aktif'))) {
+          _errorMessage = null;
+        }
       }
       notifyListeners();
     });
@@ -71,6 +82,12 @@ class ScannerViewModel({
 
   /// Indicates whether the BLE scanner is actively scanning.
   bool get isScanning => _isScanning;
+
+  /// Whether scanning was active when the app was sent to background.
+  bool get wasScanningBeforePaused => _wasScanningBeforePaused;
+
+  /// Whether BLE runtime permissions were denied.
+  bool get isPermissionDenied => _isPermissionDenied;
 
   /// Active search query string (matches name or MAC address).
   String get searchQuery => _searchQuery;
@@ -130,17 +147,41 @@ class ScannerViewModel({
 
   // --- Actions & Business Logic ---
 
+  /// Handles application entering the paused lifecycle state.
+  ///
+  /// Halts BLE scanning immediately to save device battery and sets
+  /// [_wasScanningBeforePaused] to true if scanning was active.
+  void onAppPaused() {
+    if (_isScanning) {
+      _wasScanningBeforePaused = true;
+      unawaited(stopScan());
+    }
+  }
+
+  /// Handles application resuming into foreground lifecycle state.
+  ///
+  /// Restores BLE scanning automatically if it was previously running
+  /// prior to being paused.
+  void onAppResumed() {
+    if (_wasScanningBeforePaused) {
+      _wasScanningBeforePaused = false;
+      unawaited(startScan());
+    }
+  }
+
   /// Requests required BLE runtime permissions and starts BLE scanning.
   Future<void> startScan() async {
     _errorMessage = null;
 
     final hasPermission = await _permissionService.requestBlePermissions();
     if (!hasPermission) {
+      _isPermissionDenied = true;
       _errorMessage =
           'Izin Bluetooth dan Lokasi diperlukan untuk memindai perangkat.';
       notifyListeners();
       return;
     }
+    _isPermissionDenied = false;
 
     if (_adapterState == .off) {
       _errorMessage =
@@ -163,6 +204,19 @@ class ScannerViewModel({
       await _bleService.stopScan();
     } catch (e) {
       _errorMessage = 'Gagal menghentikan pemindaian: $e';
+      notifyListeners();
+    }
+  }
+
+  /// Navigates the user directly to the application OS settings screen.
+  Future<void> openAppSettings() async {
+    await _permissionService.openSettings();
+  }
+
+  /// Resets the permission denied status flag.
+  void clearPermissionDenied() {
+    if (_isPermissionDenied) {
+      _isPermissionDenied = false;
       notifyListeners();
     }
   }
