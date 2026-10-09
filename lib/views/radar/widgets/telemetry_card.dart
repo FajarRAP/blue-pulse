@@ -19,15 +19,6 @@ class const TelemetryCard({
   required final String stabilityScore,
   required final Duration timeSinceLastPacket,
 }) extends StatelessWidget {
-  Color _getStabilityColor(String stability) {
-    return switch (stability) {
-      'Sangat Stabil' => AppColors.signalVeryStrong,
-      'Stabil' => AppColors.signalStrong,
-      'Fluktuatif' => AppColors.signalWeak,
-      _ => AppColors.signalLost,
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
     final scheme = context.scheme;
@@ -41,10 +32,15 @@ class const TelemetryCard({
     final lastSeenStr = isLost
         ? 'Hilang (> 10 dtk)'
         : timeSinceLastPacket.inSeconds < 1
-            ? 'Baru saja'
-            : '${timeSinceLastPacket.inSeconds} dtk lalu';
+        ? 'Baru saja'
+        : '${timeSinceLastPacket.inSeconds} dtk lalu';
 
-    final stabilityColor = _getStabilityColor(stabilityScore);
+    final stabilityColor = switch (stabilityScore) {
+      'Sangat Stabil' => AppColors.signalVeryStrong,
+      'Stabil' => AppColors.signalStrong,
+      'Fluktuatif' => AppColors.signalWeak,
+      _ => AppColors.signalLost,
+    };
 
     return Card(
       elevation: 0,
@@ -111,7 +107,7 @@ class const TelemetryCard({
                   decoration: BoxDecoration(
                     color: zoneColor.withValues(alpha: 0.12),
                     borderRadius: 20.radius,
-                    border: Border.all(
+                    border: .all(
                       color: zoneColor.withValues(alpha: 0.4),
                       width: 1,
                     ),
@@ -149,7 +145,7 @@ class const TelemetryCard({
                 decoration: BoxDecoration(
                   color: scheme.errorContainer.withValues(alpha: 0.4),
                   borderRadius: 12.radius,
-                  border: Border.all(
+                  border: .all(
                     color: scheme.error.withValues(alpha: 0.3),
                     width: 1,
                   ),
@@ -325,7 +321,7 @@ class const _MetricTile({
       decoration: BoxDecoration(
         color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: 12.radius,
-        border: Border.all(
+        border: .all(
           color: scheme.outlineVariant.withValues(alpha: 0.4),
           width: 0.8,
         ),
@@ -335,11 +331,7 @@ class const _MetricTile({
         children: [
           Row(
             children: [
-              Icon(
-                icon,
-                size: 14,
-                color: scheme.onSurfaceVariant,
-              ),
+              Icon(icon, size: 14, color: scheme.onSurfaceVariant),
               6.wGap,
               Expanded(
                 child: Text(

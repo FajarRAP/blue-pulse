@@ -31,20 +31,13 @@ class _RadarCanvasState extends State<RadarCanvas>
   void initState() {
     super.initState();
 
-    _sweepController = AnimationController(
-      vsync: this,
-      duration: 4.seconds,
-    )..repeat();
+    _sweepController = AnimationController(vsync: this, duration: 4.seconds)
+      ..repeat();
 
-    _waveController = AnimationController(
-      vsync: this,
-      duration: 2400.ms,
-    )..repeat();
+    _waveController = AnimationController(vsync: this, duration: 2400.ms)
+      ..repeat();
 
-    _pingController = AnimationController(
-      vsync: this,
-      duration: 700.ms,
-    );
+    _pingController = AnimationController(vsync: this, duration: 700.ms);
 
     // Initial ping on mount if not lost
     if (!widget.isLost) {
@@ -96,11 +89,12 @@ class _RadarCanvasState extends State<RadarCanvas>
             surfaceContainerColor: scheme.surfaceContainerHighest,
             outlineVariantColor: scheme.outlineVariant,
             onSurfaceVariantColor: scheme.onSurfaceVariant,
-            labelStyle: text.labelSmall?.copyWith(
-              fontSize: 10,
-              fontWeight: .w600,
-              color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
-            ) ??
+            labelStyle:
+                text.labelSmall?.copyWith(
+                  fontSize: 10,
+                  fontWeight: .w600,
+                  color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
+                ) ??
                 TextStyle(
                   fontSize: 10,
                   color: scheme.onSurfaceVariant.withValues(alpha: 0.7),
@@ -113,31 +107,18 @@ class _RadarCanvasState extends State<RadarCanvas>
   }
 }
 
-class _RadarPainter extends CustomPainter {
-  _RadarPainter({
-    required this.sweepAngle,
-    required this.waveProgress,
-    required this.pingProgress,
-    required this.device,
-    required this.isLost,
-    required this.primaryColor,
-    required this.surfaceContainerColor,
-    required this.outlineVariantColor,
-    required this.onSurfaceVariantColor,
-    required this.labelStyle,
-  });
-
-  final double sweepAngle;
-  final double waveProgress;
-  final double pingProgress;
-  final BleDeviceModel device;
-  final bool isLost;
-  final Color primaryColor;
-  final Color surfaceContainerColor;
-  final Color outlineVariantColor;
-  final Color onSurfaceVariantColor;
-  final TextStyle labelStyle;
-
+class _RadarPainter({
+  required final double sweepAngle,
+  required final double waveProgress,
+  required final double pingProgress,
+  required final BleDeviceModel device,
+  required final bool isLost,
+  required final Color primaryColor,
+  required final Color surfaceContainerColor,
+  required final Color outlineVariantColor,
+  required final Color onSurfaceVariantColor,
+  required final TextStyle labelStyle,
+}) extends CustomPainter {
   // Concentric ring distance specifications (<1m, 1-3m, 3-10m, 10-20m, >20m)
   static const _ringFractions = [0.20, 0.40, 0.60, 0.80, 1.00];
   static const _ringLabels = ['<1m', '1-3m', '3-10m', '10-20m', '>20m'];
@@ -148,7 +129,9 @@ class _RadarPainter extends CustomPainter {
     final maxRadius = (math.min(size.width, size.height) / 2) * 0.86;
     if (maxRadius <= 0) return;
 
-    final effectiveZoneColor = isLost ? AppColors.signalLost : device.zone.color;
+    final effectiveZoneColor = isLost
+        ? AppColors.signalLost
+        : device.zone.color;
 
     // 1. Radar Circular Background
     final bgPaint = Paint()
@@ -261,7 +244,8 @@ class _RadarPainter extends CustomPainter {
       canvas.drawCircle(center, maxRadius, sweepPaint);
 
       // Rotating sweep line
-      final sweepEnd = center +
+      final sweepEnd =
+          center +
           Offset(math.cos(sweepAngle), math.sin(sweepAngle)) * maxRadius;
       final linePaint = Paint()
         ..color = effectiveZoneColor.withValues(alpha: 0.55)
@@ -303,8 +287,12 @@ class _RadarPainter extends CustomPainter {
     // Compute radial distance fraction
     final radialFraction = _computeRadialFraction(device.estimatedDistance);
     final blipRadius = radialFraction * maxRadius;
-    final blipPos = center +
-        Offset(math.cos(angleRad) * blipRadius, math.sin(angleRad) * blipRadius);
+    final blipPos =
+        center +
+        Offset(
+          math.cos(angleRad) * blipRadius,
+          math.sin(angleRad) * blipRadius,
+        );
 
     if (isLost) {
       // Dashed guide line to center
@@ -428,12 +416,7 @@ class _RadarPainter extends CustomPainter {
     textPainter.paint(canvas, labelPos);
   }
 
-  void _drawBlipTag(
-    Canvas canvas,
-    Offset blipPos,
-    String text,
-    Color color,
-  ) {
+  void _drawBlipTag(Canvas canvas, Offset blipPos, String text, Color color) {
     final tp = TextPainter(
       text: TextSpan(
         text: text,
@@ -460,10 +443,7 @@ class _RadarPainter extends CustomPainter {
     final rrect = RRect.fromRectAndRadius(tagRect, const Radius.circular(4));
     canvas.drawRRect(rrect, bgPaint);
 
-    tp.paint(
-      canvas,
-      Offset(tagRect.left + hPad, tagRect.top + vPad),
-    );
+    tp.paint(canvas, Offset(tagRect.left + hPad, tagRect.top + vPad));
   }
 
   void _drawDashedCircle(
@@ -493,12 +473,7 @@ class _RadarPainter extends CustomPainter {
     }
   }
 
-  void _drawDashedLine(
-    Canvas canvas,
-    Offset p1,
-    Offset p2,
-    Paint paint,
-  ) {
+  void _drawDashedLine(Canvas canvas, Offset p1, Offset p2, Paint paint) {
     const dashLength = 4.0;
     const gapLength = 4.0;
     final dx = p2.dx - p1.dx;

@@ -20,25 +20,18 @@ typedef RadarTrackingViewModel = RadarViewModel;
 /// dynamic distance estimation, stability scoring, reception packet rate,
 /// persistence to SQLite, and an active watchdog for lost signal detection.
 class RadarViewModel({
-  required final BleService bleService,
-  required final DeviceHistoryRepository historyRepository,
+  required final BleService _bleService,
+  required final DeviceHistoryRepository _historyRepository,
   required final BleDeviceModel initialDevice,
-  final DateTime Function()? nowProvider,
+  final ValueGetter<DateTime>? _nowProvider,
 }) extends ChangeNotifier {
   this {
-    _bleService = bleService;
-    _historyRepository = historyRepository;
-    _nowProvider = nowProvider;
     _targetDevice = initialDevice;
     _lastPacketTime = initialDevice.lastSeen;
-    _isLost = initialDevice.zone == ProximityZone.lost;
+    _isLost = initialDevice.zone == .lost;
     _rssiHistory.add(initialDevice.rawRssi);
     _init();
   }
-
-  late final BleService _bleService;
-  late final DeviceHistoryRepository _historyRepository;
-  late final DateTime Function()? _nowProvider;
 
   late BleDeviceModel _targetDevice;
   late DateTime _lastPacketTime;
@@ -85,7 +78,7 @@ class RadarViewModel({
     final durationSeconds =
         now.difference(recent.first).inMilliseconds / 1000.0;
     final effectiveDuration = math.max(1.0, durationSeconds);
-    return double.parse((recent.length / effectiveDuration).toStringAsFixed(1));
+    return .parse((recent.length / effectiveDuration).toStringAsFixed(1));
   }
 
   /// Categorical signal stability score based on the variance of delta RSSI.
@@ -105,10 +98,8 @@ class RadarViewModel({
     }
 
     final meanDelta = deltas.reduce((a, b) => a + b) / deltas.length;
-    final variance = deltas.fold<double>(
-          0.0,
-          (sum, d) => sum + math.pow(d - meanDelta, 2),
-        ) /
+    final variance =
+        deltas.fold<double>(0.0, (sum, d) => sum + math.pow(d - meanDelta, 2)) /
         deltas.length;
 
     if (variance <= 2.0 && meanDelta <= 3.0) {
@@ -159,11 +150,14 @@ class RadarViewModel({
 
     final prevSmoothed = _targetDevice.smoothedRssi;
     final smoothed = SignalMath.smoothRssi(prevSmoothed, result.rssi);
-    final txPower = result.advertisementData.txPowerLevel ??
+    final txPower =
+        result.advertisementData.txPowerLevel ??
         _targetDevice.txPower ??
         AppConstants.defaultTxPower;
-    final distance =
-        SignalMath.calculateDistance(result.rssi, txPower: txPower);
+    final distance = SignalMath.calculateDistance(
+      result.rssi,
+      txPower: txPower,
+    );
     final zone = SignalMath.classifyZone(result.rssi);
 
     final advName = result.advertisementData.advName;
