@@ -7,6 +7,8 @@ import 'package:blue_pulse/data/models/ble_device_model.dart';
 import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
 import 'package:blue_pulse/views/history/history_screen.dart';
 import 'package:blue_pulse/views/radar/radar_screen.dart';
+import 'package:blue_pulse/views/scanner/widgets/ble_permission_dialog.dart';
+import 'package:blue_pulse/views/scanner/widgets/bluetooth_warning_banner.dart';
 import 'package:blue_pulse/views/scanner/widgets/device_card.dart';
 import 'package:blue_pulse/views/scanner/widgets/filter_bar.dart';
 
@@ -27,6 +29,8 @@ class _ScannerScreenState extends State<ScannerScreen> {
   late final ScannerViewModel _viewModel;
   late final TextEditingController _searchController;
   late final bool _isInternalViewModel;
+  late final AppLifecycleListener _lifecycleListener;
+  bool _isPermissionDialogShowing = false;
 
   @override
   void initState() {
@@ -34,6 +38,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
     _isInternalViewModel = widget.viewModel == null;
     _viewModel = widget.viewModel ?? locator<ScannerViewModel>();
     _searchController = TextEditingController(text: _viewModel.searchQuery);
+
+    _lifecycleListener = AppLifecycleListener(
+      onPause: _viewModel.onAppPaused,
+      onResume: _viewModel.onAppResumed,
+    );
+
+    _viewModel.addListener(_onViewModelStateChanged);
 
     // Automatically trigger initial BLE scan upon dashboard launch
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -43,8 +54,43 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
   }
 
+  void _onViewModelStateChanged() {
+    if (!mounted) return;
+    if (_viewModel.isPermissionDenied && !_isPermissionDialogShowing) {
+      _isPermissionDialogShowing = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted || !_viewModel.isPermissionDenied) {
+          _isPermissionDialogShowing = false;
+          return;
+        }
+        await _showPermissionDialog();
+      });
+    }
+  }
+
+  Future<void> _showPermissionDialog() async {
+    _isPermissionDialogShowing = true;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => BlePermissionDialog(
+        onOpenSettings: () {
+          Navigator.of(dialogContext).pop();
+          _viewModel.openAppSettings();
+        },
+        onDismiss: () {
+          Navigator.of(dialogContext).pop();
+          _viewModel.clearPermissionDenied();
+        },
+      ),
+    );
+    _isPermissionDialogShowing = false;
+  }
+
   @override
   void dispose() {
+    _viewModel.removeListener(_onViewModelStateChanged);
+    _lifecycleListener.dispose();
     _searchController.dispose();
     if (_isInternalViewModel) {
       _viewModel.dispose();
@@ -79,105 +125,53 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            // title: Row(
-            //   mainAxisSize: .min,
-            //   children: [
-            //     const Text('BluePulse', style: TextStyle(fontWeight: .bold)),
-            //     10.wGap,
-            //     // Scanning Status Badge
-            //     Container(
-            //       padding: 8.hPadding + 4.vPadding,
-            //       decoration: BoxDecoration(
-            //         color: isScanning
-            //             ? scheme.primaryContainer
-            //             : scheme.surfaceContainer,
-            //         borderRadius: 12.radius,
-            //       ),
-            //       child: Row(
-            //         mainAxisSize: .min,
-            //         children: [
-            //           if (isScanning) ...[
-            //             SizedBox.square(
-            //               dimension: 8,
-            //               child: CircularProgressIndicator(strokeWidth: 2),
-            //             ),
-            //             6.wGap,
-            //             Text(
-            //               'Memindai...',
-            //               style: TextStyle(
-            //                 fontSize: 11,
-            //                 fontWeight: .w600,
-            //                 color: scheme.onPrimaryContainer,
-            //               ),
-            //             ),
-            //           ] else ...[
-            //             SizedBox.square(
-            //               dimension: 6,
-            //               child: DecoratedBox(
-            //                 decoration: BoxDecoration(
-            //                   shape: .circle,
-            //                   color: scheme.onSurfaceVariant,
-            //                 ),
-            //               ),
-            //             ),
-            //             6.wGap,
-            //             Text(
-            //               'Siap',
-            //               style: TextStyle(
-            //                 fontSize: 11,
-            //                 fontWeight: .w600,
-            //                 color: scheme.onSurfaceVariant,
-            //               ),
-            //             ),
-            //           ],
-            //         ],
-            //       ),
-            //     ),
-            //   ],
-            // ),
             title: Column(
               crossAxisAlignment: .start,
               mainAxisSize: .min,
               children: [
                 const Text('BluePulse', style: TextStyle(fontWeight: .bold)),
-                Row(
-                  mainAxisSize: .min,
-                  children: [
-                    if (isScanning) ...[
-                      SizedBox.square(
-                        dimension: 8,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 1.5,
-                          color: scheme.primary,
+                FittedBox(
+                  fit: .scaleDown,
+                  alignment: .centerLeft,
+                  child: Row(
+                    mainAxisSize: .min,
+                    children: [
+                      if (isScanning) ...[
+                        SizedBox.square(
+                          dimension: 8,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 1.5,
+                            color: scheme.primary,
+                          ),
                         ),
-                      ),
-                      6.wGap,
-                      Text(
-                        'Memindai...',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: scheme.primary,
-                          fontWeight: .w600,
+                        6.wGap,
+                        Text(
+                          'Memindai...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: scheme.primary,
+                            fontWeight: .w600,
+                          ),
                         ),
-                      ),
-                    ] else ...[
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          shape: .circle,
-                          color: scheme.outline,
+                      ] else ...[
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            shape: .circle,
+                            color: scheme.outline,
+                          ),
+                          child: const SizedBox.square(dimension: 6),
                         ),
-                        child: const SizedBox.square(dimension: 6),
-                      ),
-                      6.wGap,
-                      Text(
-                        'Siap',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: scheme.onSurfaceVariant,
+                        6.wGap,
+                        Text(
+                          'Siap',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: scheme.onSurfaceVariant,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -235,40 +229,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
             children: [
               // Warning Banner (Bluetooth OFF or Error Message)
               if (hasWarning)
-                Container(
-                  margin: 16.hPadding + 8.vPadding,
-                  padding: 14.hPadding + 10.vPadding,
-                  decoration: BoxDecoration(
-                    color: scheme.errorContainer,
-                    borderRadius: 12.radius,
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.bluetooth_disabled_rounded,
-                        color: scheme.onErrorContainer,
-                        size: 22,
-                      ),
-                      10.wGap,
-                      Expanded(
-                        child: Text(
-                          _viewModel.errorMessage ?? 'Bluetooth tidak aktif. Silakan nyalakan Bluetooth untuk memindai.',
-                          style: text.bodySmall?.copyWith(
-                            color: scheme.onErrorContainer,
-                            fontWeight: .w500,
-                          ),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: _viewModel.startScan,
-                        style: TextButton.styleFrom(
-                          visualDensity: .compact,
-                          foregroundColor: scheme.onErrorContainer,
-                        ),
-                        child: const Text('Coba Lagi'),
-                      ),
-                    ],
-                  ),
+                BluetoothWarningBanner(
+                  message: _viewModel.errorMessage ??
+                      'Bluetooth tidak aktif. Silakan nyalakan Bluetooth untuk memindai.',
+                  actionLabel: _viewModel.isPermissionDenied
+                      ? 'Buka Pengaturan'
+                      : 'Coba Lagi',
+                  onAction: _viewModel.isPermissionDenied
+                      ? _showPermissionDialog
+                      : _viewModel.startScan,
                 ),
 
               // Summary Bar: Device Count & Filter Reset
