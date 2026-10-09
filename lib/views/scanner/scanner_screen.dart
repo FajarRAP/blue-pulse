@@ -5,6 +5,7 @@ import 'package:blue_pulse/core/utils/extensions.dart';
 import 'package:blue_pulse/core/utils/preview_annotations.dart';
 import 'package:blue_pulse/data/models/ble_device_model.dart';
 import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
+import 'package:blue_pulse/views/history/history_screen.dart';
 import 'package:blue_pulse/views/radar/radar_screen.dart';
 import 'package:blue_pulse/views/scanner/widgets/device_card.dart';
 import 'package:blue_pulse/views/scanner/widgets/filter_bar.dart';
@@ -137,6 +138,13 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ],
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.history_rounded),
+                tooltip: 'Riwayat Perangkat',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                ),
+              ),
               // Prominent Start/Stop Scan Toggle Button
               if (isScanning)
                 FilledButton.tonalIcon(
