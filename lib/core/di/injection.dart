@@ -5,6 +5,7 @@ import 'package:blue_pulse/data/models/ble_device_model.dart';
 import 'package:blue_pulse/data/repositories/device_history_repository.dart';
 import 'package:blue_pulse/services/ble_service.dart';
 import 'package:blue_pulse/services/permission_service.dart';
+import 'package:blue_pulse/viewmodels/history_viewmodel.dart';
 import 'package:blue_pulse/viewmodels/radar_viewmodel.dart';
 import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
 
@@ -48,5 +49,9 @@ Future<void> setupLocator() async {
       historyRepository: locator<DeviceHistoryRepository>(),
       initialDevice: device,
     ),
+  );
+
+  locator.registerFactory<HistoryViewModel>(
+    () => HistoryViewModel(locator<DeviceHistoryRepository>()),
   );
 }

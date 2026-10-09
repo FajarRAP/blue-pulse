@@ -5,6 +5,7 @@ import 'package:blue_pulse/core/utils/extensions.dart';
 import 'package:blue_pulse/core/utils/preview_annotations.dart';
 import 'package:blue_pulse/data/models/ble_device_model.dart';
 import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
+import 'package:blue_pulse/views/history/history_screen.dart';
 import 'package:blue_pulse/views/radar/radar_screen.dart';
 import 'package:blue_pulse/views/scanner/widgets/device_card.dart';
 import 'package:blue_pulse/views/scanner/widgets/filter_bar.dart';
@@ -58,9 +59,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
     }
 
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => RadarScreen(targetDevice: device),
-      ),
+      MaterialPageRoute(builder: (_) => RadarScreen(targetDevice: device)),
     );
   }
 
@@ -80,63 +79,116 @@ class _ScannerScreenState extends State<ScannerScreen> {
 
         return Scaffold(
           appBar: AppBar(
-            title: Row(
+            // title: Row(
+            //   mainAxisSize: .min,
+            //   children: [
+            //     const Text('BluePulse', style: TextStyle(fontWeight: .bold)),
+            //     10.wGap,
+            //     // Scanning Status Badge
+            //     Container(
+            //       padding: 8.hPadding + 4.vPadding,
+            //       decoration: BoxDecoration(
+            //         color: isScanning
+            //             ? scheme.primaryContainer
+            //             : scheme.surfaceContainer,
+            //         borderRadius: 12.radius,
+            //       ),
+            //       child: Row(
+            //         mainAxisSize: .min,
+            //         children: [
+            //           if (isScanning) ...[
+            //             SizedBox.square(
+            //               dimension: 8,
+            //               child: CircularProgressIndicator(strokeWidth: 2),
+            //             ),
+            //             6.wGap,
+            //             Text(
+            //               'Memindai...',
+            //               style: TextStyle(
+            //                 fontSize: 11,
+            //                 fontWeight: .w600,
+            //                 color: scheme.onPrimaryContainer,
+            //               ),
+            //             ),
+            //           ] else ...[
+            //             SizedBox.square(
+            //               dimension: 6,
+            //               child: DecoratedBox(
+            //                 decoration: BoxDecoration(
+            //                   shape: .circle,
+            //                   color: scheme.onSurfaceVariant,
+            //                 ),
+            //               ),
+            //             ),
+            //             6.wGap,
+            //             Text(
+            //               'Siap',
+            //               style: TextStyle(
+            //                 fontSize: 11,
+            //                 fontWeight: .w600,
+            //                 color: scheme.onSurfaceVariant,
+            //               ),
+            //             ),
+            //           ],
+            //         ],
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            title: Column(
+              crossAxisAlignment: .start,
               mainAxisSize: .min,
               children: [
                 const Text('BluePulse', style: TextStyle(fontWeight: .bold)),
-                10.wGap,
-                // Scanning Status Badge
-                Container(
-                  padding: 8.hPadding + 4.vPadding,
-                  decoration: BoxDecoration(
-                    color: isScanning
-                        ? scheme.primaryContainer
-                        : scheme.surfaceContainer,
-                    borderRadius: 12.radius,
-                  ),
-                  child: Row(
-                    mainAxisSize: .min,
-                    children: [
-                      if (isScanning) ...[
-                        SizedBox.square(
-                          dimension: 8,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                Row(
+                  mainAxisSize: .min,
+                  children: [
+                    if (isScanning) ...[
+                      SizedBox.square(
+                        dimension: 8,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          color: scheme.primary,
                         ),
-                        6.wGap,
-                        Text(
-                          'Memindai...',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: .w600,
-                            color: scheme.onPrimaryContainer,
-                          ),
+                      ),
+                      6.wGap,
+                      Text(
+                        'Memindai...',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: scheme.primary,
+                          fontWeight: .w600,
                         ),
-                      ] else ...[
-                        SizedBox.square(
-                          dimension: 6,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              shape: .circle,
-                              color: scheme.onSurfaceVariant,
-                            ),
-                          ),
+                      ),
+                    ] else ...[
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          shape: .circle,
+                          color: scheme.outline,
                         ),
-                        6.wGap,
-                        Text(
-                          'Siap',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: .w600,
-                            color: scheme.onSurfaceVariant,
-                          ),
+                        child: const SizedBox.square(dimension: 6),
+                      ),
+                      6.wGap,
+                      Text(
+                        'Siap',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: scheme.onSurfaceVariant,
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ],
             ),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.history_rounded),
+                tooltip: 'Riwayat Perangkat',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                ),
+              ),
               // Prominent Start/Stop Scan Toggle Button
               if (isScanning)
                 FilledButton.tonalIcon(

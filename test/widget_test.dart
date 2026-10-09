@@ -13,8 +13,10 @@ import 'package:blue_pulse/main.dart';
 import 'package:blue_pulse/services/ble_service.dart';
 import 'package:blue_pulse/services/permission_service.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:blue_pulse/viewmodels/history_viewmodel.dart';
 import 'package:blue_pulse/viewmodels/radar_viewmodel.dart';
 import 'package:blue_pulse/viewmodels/scanner_viewmodel.dart';
+import 'package:blue_pulse/views/history/history_screen.dart';
 import 'package:blue_pulse/views/radar/radar_screen.dart';
 import 'package:blue_pulse/views/scanner/scanner_screen.dart';
 
@@ -91,6 +93,9 @@ void main() {
         initialDevice: device,
       ),
     );
+    locator.registerFactory<HistoryViewModel>(
+      () => HistoryViewModel(locator<DeviceHistoryRepository>()),
+    );
   });
 
   tearDown(() async {
@@ -148,5 +153,23 @@ void main() {
     expect(find.byType(RadarScreen), findsOneWidget);
     expect(find.text('ESTIMASI JARAK'), findsOneWidget);
     expect(find.text('AA:BB:CC:DD:EE:01'), findsOneWidget);
+  });
+
+  testWidgets('navigates from ScannerScreen to HistoryScreen on history icon tap', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    await tester.pump();
+
+    // Verify history icon button is present in AppBar
+    final historyButtonFinder = find.byTooltip('Riwayat Perangkat');
+    expect(historyButtonFinder, findsOneWidget);
+
+    // Tap on history button
+    await tester.tap(historyButtonFinder);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // Verify HistoryScreen is rendered
+    expect(find.byType(HistoryScreen), findsOneWidget);
+    expect(find.text('Riwayat Perangkat'), findsOneWidget);
   });
 }
